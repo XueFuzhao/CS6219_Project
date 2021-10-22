@@ -26,5 +26,5 @@ Methods:
     Computes the strand-level error between `truth` and `result`.   
     `truth`: the underlying strand.   
     `result`: the result of consensus finding algorithms.   
-    **output:** a interger number stands for the edit distance between `truth` and `strand`.    
+    **output:** a interger number stands for the edit distance between `truth` and `result`.    
     **note:** pybind11 is used.
