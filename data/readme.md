@@ -19,7 +19,7 @@ Methods:
     Computes the position-level error between `truth` and `result`.   
     `truth`: the underlying strand.   
     `result`: the result of consensus finding algorithms.   
-    **output:** a binary vector with length `len(truth)`, where `1` stands for mismatching.
+    **output:** a boolean vector with length `len(truth)`, where `1` stands for mismatching.
 
 3. Strand-level error: `edit_distance(truth, result)`
 
