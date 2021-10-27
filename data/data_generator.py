@@ -56,8 +56,8 @@ def edit_distance(truth, result):
 
 if __name__ == '__main__':
         number_of_samples = 12800
-        output_data_file_path = 'dev_data.txt'
-        output_label_file_path = 'dev_label.txt'
+        output_data_file_path = '../dataset/dev_data.txt'
+        output_label_file_path = '../dataset/dev_label.txt'
         sequence_len = 120
         
         #data_list = []
@@ -66,7 +66,7 @@ if __name__ == '__main__':
         f_label = open(output_label_file_path, "w")
 
         for i in range(number_of_samples):
-            combined_data = gen_cluster(sequence_len, 10, 0.01, 0.01, 0.01, i)
+            combined_data = gen_cluster(sequence_len, 10, 0.03, 0.03, 0.03, i)
             data = combined_data['cluster']
             label = combined_data['truth']
             for j in range(len(data)):
