@@ -20,33 +20,44 @@ class TrainingDataLoader(data.Dataset):
         training_data_file  = open(data_path,'r')
         training_data_file_lines = training_data_file.readlines()
         one_training_data_sample_list = []
-        
+        reverse_one_training_data_sample_list = []
         self.dataset_list = []
+        self.reverse_dataset_list = []
         for line in training_data_file_lines:
 
             line = line.strip()
             if len(line) > 5:
                 sample = self.map_dna_sequence_to_one_hot(line,sequence_len)
-                #reverse_sample = self.map_dna_sequence_to_one_hot(line[::-1],sequence_len).re
+                #reverse_sample = self.map_dna_sequence_to_one_hot(line[::-1], sequence_len)
+                reverse_sample = torch.flip(self.map_dna_sequence_to_one_hot(line[::-1], sequence_len), [1])
+                sample = torch.cat([sample[:sequence_len//2+1],reverse_sample[sequence_len//2+1:]])
+                #reverse_sample = torch.flip(self.map_dna_sequence_to_one_hot(line[::-1],sequence_len), [1])
                 #sample = torch.cat([sample,reverse_sample],dim=)
+
                 one_training_data_sample_list.append(sample)
+                #reverse_one_training_data_sample_list.append(reverse_sample)
             elif len(one_training_data_sample_list) > 1:
                 #print(torch.cat(one_training_data_sample_list,dim=0).float())
                 while len(one_training_data_sample_list)<10:
 
                     one_training_data_sample_list.append(torch.zeros(1,sequence_len,4,dtype=torch.long))
-                #print(one_training_data_sample_list[0].size(),one_training_data_sample_list[-1].size())
-                #one_sample = torch.cat(one_training_data_sample_list,dim=2).float().squeeze(0)
-                #print(one_sample.size())
-                #if one_sampel
+                    #reverse_one_training_data_sample_list.append(torch.zeros(1,sequence_len,4,dtype=torch.long))
+
                 one_sample = torch.mean(torch.cat(one_training_data_sample_list, dim=0).float(), dim=0)
-                #one_sample = torch.sum(torch.cat(one_training_data_sample_list, dim=0), dim=0)
+                #reverse_one_sample = torch.mean(torch.cat(reverse_one_training_data_sample_list, dim=0).float(), dim=0)
                 one_sample = self.map_to_left_window(one_sample,self.left,self.right)[:sequence_len]
+                #reverse_one_sample = self.map_to_left_window(reverse_one_sample, self.left, self.right)[:sequence_len]
+                #print("================================")
+                #print(one_sample,reverse_one_sample)
                 one_sample = self.position_embedding(one_sample)
+                #reverse_one_sample = self.position_embedding(reverse_one_sample)
                 self.dataset_list.append(one_sample)
+                #self.reverse_dataset_list.append(reverse_one_sample)
                 one_training_data_sample_list = []
-                
-        
+                #reverse_one_training_data_sample_list = []
+
+        print("Length of two dataset_list: ",len(self.dataset_list), len(self.reverse_dataset_list))
+
         #init label
         self.label_list = []
 
@@ -130,13 +141,16 @@ class TrainingDataLoader(data.Dataset):
         #print(self)
         #print(row_index,col_index)
         data_sequences_list = self.dataset_list[row_index:row_index+self.batchsize]
+        #reverse_data_sequences_list = self.reverse_dataset_list[row_index:row_index + self.batchsize]
         data_sequences = torch.stack(data_sequences_list)
+        #reverse_data_sequences = torch.stack(reverse_data_sequences_list)
         xMini = data_sequences[:,col_index*self.timesteps:(col_index+1)*self.timesteps]
+        #reverse_xMini = reverse_data_sequences[:, col_index * self.timesteps:(col_index + 1) * self.timesteps]
         
         label_sequences_list = self.label_list[row_index:row_index+self.batchsize]
         label_sequences = torch.stack(label_sequences_list)
         yMini = label_sequences[:,col_index*self.timesteps:(col_index+1)*self.timesteps]
-        #print(xMini.size(),yMini.size())
+
 
 
         return (xMini, yMini)

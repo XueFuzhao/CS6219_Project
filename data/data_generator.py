@@ -55,10 +55,10 @@ def edit_distance(truth, result):
 
 
 if __name__ == '__main__':
-        number_of_samples = 200000
-        #number_of_samples = 12800
-        output_data_file_path = '../dataset/train_data_strands_10_error0.03_seq_120.txt'
-        output_label_file_path = '../dataset/train_label_strands_10_error0.03_seq_120.txt'
+        #number_of_samples = 200000
+        number_of_samples = 12800
+        output_data_file_path = '../dataset/dev_data_strands7_10_error0.25_seq_120.txt'
+        output_label_file_path = '../dataset/dev_label_strands7_10_error0.25_seq_120.txt'
         sequence_len = 120
         
 
@@ -69,8 +69,8 @@ if __name__ == '__main__':
 
 
         for i in range(number_of_samples):
-            #num_strands = random.randint(7, 10)
-            combined_data = gen_cluster(sequence_len, num_strands, 0.01, 0.01, 0.01, i)
+            num_strands = random.randint(7, 10)
+            combined_data = gen_cluster(sequence_len, num_strands, 0.083, 0.083, 0.083, i)
             data = combined_data['cluster']
             label = combined_data['truth']
             for j in range(len(data)):

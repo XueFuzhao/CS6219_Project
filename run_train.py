@@ -150,6 +150,11 @@ def val(model, train_loader, my_loss, optimizer, epoch, hidden1):
         # If you run this code on CPU, please remove the '.cuda()'
         x = x.cuda().squeeze(0)
         y = y.cuda().squeeze(0)
+        #reverse_x = reverse_x.cuda().squeeze(0)
+        #print("=================================")
+        #print(x[0])
+        #print(reverse_x[0])
+
 
         b, t, h = x.size()
         if b == learning['batchSize']:
@@ -161,6 +166,11 @@ def val(model, train_loader, my_loss, optimizer, epoch, hidden1):
             hidden1_before = torch.zeros_like(hidden1).cuda()
             with torch.no_grad():
                 output, hidden1_after= model(x, hidden1_before)
+                #reverse_output, hidden1_after = model(reverse_x, hidden1_before)
+                #reverse_output = reverse_output[:,:seq_len//2+1]
+                #reverse_output = torch.flip(reverse_output,dims=[1])
+            #output = torch.cat([output[:,:seq_len//2+1],reverse_output],dim=1)
+            #output = reverse_output
             _, pred = torch.max(output.data, 1)
             y_batch_size, y_time_steps = y.size()
             y = torch.reshape(y, tuple([y_batch_size * y_time_steps]))
