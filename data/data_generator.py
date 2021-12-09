@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 import argparse
 #import C
 
@@ -55,22 +56,29 @@ def edit_distance(truth, result):
 
 
 if __name__ == '__main__':
-        #number_of_samples = 200000
-        number_of_samples = 12800
-        output_data_file_path = '../dataset/dev_data_strands7_10_error0.25_seq_120.txt'
-        output_label_file_path = '../dataset/dev_label_strands7_10_error0.25_seq_120.txt'
+        p = 0.01
+        # pl, pr = 0.01, 0.1
+        cl, cr = 10, 13
         sequence_len = 120
-        
+
+        # for c in (6, 8, 10, 12, 14):
+        _pre = 'test'
+        # for _pre in ('train', 'val'):
+        number_of_samples = 25600
+        if _pre == 'train':
+            number_of_samples = number_of_samples << 2
+
+        output_data_file_path = '../datatest/'+_pre+'_data_c'+str(cl)+'-'+str(cr)+'_p'+str(p)+'_l'+str(sequence_len)+'.txt'
+        output_label_file_path = '../datatest/'+_pre+'_label_c'+str(cl)+'-'+str(cr)+'_p'+str(p)+'_l'+str(sequence_len)+'.txt'
 
         f_data = open(output_data_file_path, "w")
         f_label = open(output_label_file_path, "w")
 
-        num_strands = 10
-
-
+        random.seed(datetime.now())
         for i in range(number_of_samples):
-            num_strands = random.randint(7, 10)
-            combined_data = gen_cluster(sequence_len, num_strands, 0.083, 0.083, 0.083, i)
+            num_strands = random.randint(cl, cr)
+            # p = random.uniform(pl, pr)
+            combined_data = gen_cluster(sequence_len, num_strands, p/3, p/3, p/3)
             data = combined_data['cluster']
             label = combined_data['truth']
             for j in range(len(data)):
@@ -82,13 +90,3 @@ if __name__ == '__main__':
             f_label.write('\n')
         f_data.close()
         f_label.close()
-
-
-
-
-
-        #data = gen_cluster(100, 10, 0.01, 0.01, 0.01)
-	#print(data)
-	#for s in data['cluster']:
-        #print(edit_distance(data['truth'], s))
-

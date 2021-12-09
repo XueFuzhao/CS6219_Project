@@ -124,7 +124,7 @@ def recover_strand(cluster, strand_len):
 
     return ans
 
-
+L = 120
 def reconstruct(cluster):
     strand_num = len(cluster)
 
@@ -143,7 +143,8 @@ def reconstruct(cluster):
 
 
 def reconstruct_clusters_mp(clusters):
-    pool = mp.Pool(20)
+    print('cpu_count: ', mp.cpu_count())
+    pool = mp.Pool(24)
     reconstructed_strands = pool.map_async(reconstruct, clusters).get()
     pool.close()
     return reconstructed_strands
@@ -158,55 +159,74 @@ def reconstruct_clusters_sq(clusters):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('DNA consensus')
-    parser.add_argument('--N', type=int, default=10**3)
     parser.add_argument('--L', type=int, default=120)
-    parser.add_argument('--n', type=int, default=10)
-    parser.add_argument('--p', type=float, default=0.01)
-    parser.add_argument('--path', type=str, default='./log/')
+    parser.add_argument('--f', type=str)
+    parser.add_argument('--log', type=str, default='./log/')
+    parser.add_argument('--path', type=str, default='./')
     args = parser.parse_args()
 
-    N = args.N
     L = args.L
-    n = args.n
-    p = args.p
+    fpath = args.path
+    fname = args.f
+    logpath = args.log
+    if not os.path.exists(logpath):
+        os.mkdir(logpath)
 
-    path = args.path
-    if not os.path.exists(path):
-        os.mkdir(path)
-    filesuff = '_N{}_L{}_n{}_p{}.txt'.format(N, L, n, p)
+    fdata_name = fpath + 'test_data_' + fname + '.txt'
+    flabel_name = fpath + 'test_label_' + fname + '.txt'
 
     strands = []
     clusters = []
 
-    for i in range(N):
-        data = data_generator.gen_cluster(L, n, p, p, p, i)
-        strands.append(data['truth'])
-        clusters.append(data['cluster'])
+    fdata = open(fdata_name, 'r')
+    flabel = open(flabel_name, 'r')
 
-    f = open(path + 'strands' + filesuff, 'w')
-    for strand in strands:
-        f.write(strand + '\n')
-    f.close()
+    blanklines = 0
+    while True:
+        line = flabel.readline().strip('\n')
+        if line == '':
+            blanklines += 1
+            if blanklines > 5:
+                break
+            continue
+        blanklines = 0
+        strands.append(line)
+    cl = []
+
+    blanklines = 0
+    while True:
+        line = fdata.readline().strip('\n')
+        if line == '':
+            blanklines += 1
+            if blanklines > 5:
+                break
+            if len(cl) > 0:
+                clusters.append(cl)
+                cl = []
+            continue
+        blanklines = 0
+        # print(line)
+        cl.append(line)
+
+    print(len(strands), len(clusters))
 
     start = time.time()
     results = reconstruct_clusters_mp(clusters)
     end = time.time()
     print("Trace reconstruction took " + str(end-start) +" seconds")
 
-    f = open(path + 'results' + filesuff, 'w')
-    for result in results:
-        f.write(result + '\n')
-    f.close()
+    strand_acc = 0
+    errs = 0
+    for i in range(len(strands)):
+        err = sum(data_generator.positional_error(strands[i], results[i]))
+        errs += err
+        if err == 0:
+            strand_acc += 1
 
-    position_errors = [0]*L
-    for i in range(N):
-        error_vec = data_generator.positional_error(strands[i], results[i])
-        position_errors = list(map(lambda x, y: x + y, position_errors, error_vec))
+    print('Base-level: ', 1.0 - errs / len(strands) / 120)
+    print('Strand-level: ', strand_acc / len(strands))
 
-    f = open(path + 'stats' + filesuff, 'w')
-    f.write('N: {}, L: {}, n: {}, p: {}\n'.format(N, L, n, p))
-    f.write('time: ' + str(end - start) + ' seconds\n')
-    f.write('positional error:\n')
-    for i in range(L):
-        f.write(str(position_errors[i]) + ' ')
-    f.close()
+    flog = open(logpath + fname + '.log', 'w')
+    flog.write('Base-level acc: ' + str(1.0 - errs / len(strands) / 120) + '\n')
+    flog.write('Strand-level acc: ' + str(strand_acc / len(strands)) + '\n')
+    flog.write('Throughput: ' + str(len(strands) / (end-start)) + '\n')
