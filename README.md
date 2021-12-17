@@ -23,4 +23,4 @@ Use the commands to run the pre-trained models:
 bash run_model.sh
 ```
 
-Please note that our code requires GPU to run. We use RTX1080ti GPU to achieve the results reported.
+Please note that our code requires GPU to run. We use NVIDIA GTX 1080Ti GPU to achieve the results reported.
